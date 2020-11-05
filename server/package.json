@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "commit": "cd .. && git add . && git commit -m",
+    "postcommit": "git push",
     "start": "nodemon",
     "production": "pm2 start index.js --name knowledge-backend"
   },

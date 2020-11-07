@@ -5,13 +5,13 @@ module.exports = app => {
     if(typeof value === 'string' && !value.trim()) throw msg;
   }
   
-  function notExistsOrError(value, msg) {
+  function notExistOrError(value, msg) {
     try {
       existOrError(value, msg)
-    }catch(msg){
+    }catch(msg){ // se der erro é pq n existe
       return;
     }
-    throw msg;
+    throw msg; // se chegar aqui é pq existe
   }
   
   function equalsOrError (valueA, valueB, msg){
@@ -20,7 +20,7 @@ module.exports = app => {
   
   return {
     existOrError,
-    notExistsOrError,
+    notExistOrError,
     equalsOrError
   };
 }

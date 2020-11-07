@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt-nodejs');
 const { use } = require('passport');
 
 module.exports = app => {
-  const { existsOrError, notExistOrError, equalsOrError } = app.utils.validator;
+  const { existOrError, notExistOrError, equalsOrError } = app.utils.validator;
 
   const encryptPassword = (password) => {
     const salt = bcrypt.genSaltSync(10);
@@ -11,12 +11,13 @@ module.exports = app => {
 
   const save = async (req, res) =>{
     const user = {... req.body};
+    if(req.params.id) user.id = req.params.id;
 
     try {
-      existsOrError(user.name, "Nome não informado!");
-      existsOrError(user.email, "E-mail não informado!");
-      existsOrError(user.password, "Senha não informada!");
-      existsOrError(user.confirmPassword, "Confirmação de senha não informada!");
+      existOrError(user.name, "Nome não informado!");
+      existOrError(user.email, "E-mail não informado!");
+      existOrError(user.password, "Senha não informada!");
+      existOrError(user.confirmPassword, "Confirmação de senha não informada!");
       equalsOrError(user.password, user.confirmPassword, 
         "A senha e sua confirmação precisam ser iguais!");
       const userFromDB = await app.db('users')
@@ -28,6 +29,7 @@ module.exports = app => {
       }
 
     }catch(msg){
+      console.log(msg)
       return res.status(400).json({
         error: msg
       });
@@ -42,14 +44,14 @@ module.exports = app => {
         .where({id: user.id})
         .then(_ => res.status(204).send())
         .catch(err => res.status(500).send({
-          err: "serviço indisponivel, tente novamente mais tarde"
+          error: "serviço indisponivel, tente novamente mais tarde"
         }));
     }else {
       app.db('users')
         .insert(user)
-        .then(_ => res.status(204).send())
+        .then(_ => res.status(201).json(user))
         .catch(err => res.status(500).send({
-          err: "serviço indisponivel, tente novamente mais tarde"
+          error: "serviço indisponivel, tente novamente mais tarde"
         }));
     }
   }
@@ -59,12 +61,24 @@ module.exports = app => {
       .select('id', 'name', 'email', 'admin')
       .then(users => res.status(200).json(users))
       .catch(err => res.status(500).send({
-        err: "serviço indisponivel, tente novamente mais tarde"
+        error: "serviço indisponivel, tente novamente mais tarde"
       }));
-}
+  }
+
+  const show = (req, res) => {
+    app.db('users')
+      .select('id', 'name', 'email', 'admin')
+      .where({ id: req.params.id})
+      .first()
+      .then(users => res.status(200).json(users))
+      .catch(err => res.status(500).send({
+        error: "serviço indisponivel, tente novamente mais tarde: "
+      }));
+  }
 
   return {
     save,
-    index
+    index,
+    show
   }
 }
